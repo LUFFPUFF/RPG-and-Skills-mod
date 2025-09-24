@@ -1,0 +1,8 @@
+{
+  "replace": false,
+  "values": [
+    "minecraft:blaze_rod",
+    "minecraft:ender_pearl",
+    "rpgmod:magic_staff"
+  ]
+}
