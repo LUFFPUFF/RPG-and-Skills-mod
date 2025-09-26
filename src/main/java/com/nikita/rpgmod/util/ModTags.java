@@ -48,4 +48,17 @@ public class ModTags {
 
     }
 
+    public static class VanillaDamageTypeTags {
+
+        /**
+         * Тег для урона, который игнорирует броню (урон от падения, голода, пустоты, /kill и т.д.).
+         */
+        public static final TagKey<DamageType> BYPASSES_ARMOR = createVanilla("bypasses_armor");
+
+        private static TagKey<DamageType> createVanilla(String name) {
+            return TagKey.create(Registries.DAMAGE_TYPE, ResourceLocation.fromNamespaceAndPath("minecraft", name));
+        }
+
+    }
+
 }

@@ -7,25 +7,27 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import org.jetbrains.annotations.Nullable;
 
-public class IntelligenceCombatModifier implements ICombatModifier {
+public class VitalityCombatModifier implements ICombatModifier {
 
-    private static final float INTELLIGENCE_DAMAGE_MULTIPLIER_PER_POINT = 0.025f;
+    private static final double PROTECTION_PER_CONSTITUTION = 0.002;
 
     @Override
     public float applyDamageModification(@Nullable LivingEntity attacker, LivingEntity target, DamageSource source, float originalDamage) {
-        if (!(attacker instanceof Player player)) {
+        if (!(target instanceof Player player)) {
             return originalDamage;
         }
 
-        if (!source.is(ModTags.DamageTypes.IS_MAGIC)) {
+        if (source.is(ModTags.VanillaDamageTypeTags.BYPASSES_ARMOR)) {
             return originalDamage;
         }
 
         return player.getCapability(PlayerStatsProvider.PLAYER_STATS)
                 .map(stats -> {
-                    int intelligence = stats.getIntelligence();
-                    float intelligenceMultiplier = 1.0f + (intelligence * INTELLIGENCE_DAMAGE_MULTIPLIER_PER_POINT);
-                    return originalDamage * intelligenceMultiplier;
+                    int vitality = stats.getVitality();
+
+                    double reductionRatio = (vitality * PROTECTION_PER_CONSTITUTION) / (1.0 + vitality * PROTECTION_PER_CONSTITUTION);
+
+                    return originalDamage * (1.0f - (float)reductionRatio);
                 })
                 .orElse(originalDamage);
     }

@@ -1,8 +1,6 @@
 package com.nikita.rpgmod.combat;
 
-import com.nikita.rpgmod.combat.modifier.AttributeCombatModifier;
-import com.nikita.rpgmod.combat.modifier.DexterityCombatModifier;
-import com.nikita.rpgmod.combat.modifier.ICombatModifier;
+import com.nikita.rpgmod.combat.modifier.*;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 
@@ -34,6 +32,8 @@ public class CombatEngine {
     private void registerModifiers() {
         this.modifiers.add(new AttributeCombatModifier());
         this.modifiers.add(new DexterityCombatModifier());
+        this.modifiers.add(new IntelligenceCombatModifier());
+        this.modifiers.add(new VitalityCombatModifier());
     }
 
     /**

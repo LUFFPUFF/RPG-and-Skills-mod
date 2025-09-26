@@ -30,8 +30,17 @@ public class AttributeUpdateService {
      */
     private static final double KNOCKBACK_RESISTANCE_PER_STRENGTH = 0.005;
 
+    /**
+     * Константы ловкости
+     */
     private static final UUID DEXTERITY_ATTACK_SPEED_UUID = UUID.fromString("b1c7f8b0-44a2-11ee-be56-0242ac120002");
     private static final double ATTACK_SPEED_PER_DEXTERITY = 0.015;
+
+    /**
+     * Константы выносливости
+     */
+    private static final UUID CONSTITUTION_MAX_HEALTH_UUID = UUID.fromString("c8a5e8a0-5b1c-4f5a-9a8b-1c9d1e1f1a2b");
+    private static final double HEALTH_PER_CONSTITUTION = 2.0;
 
     private AttributeUpdateService() {}
 
@@ -92,6 +101,31 @@ public class AttributeUpdateService {
 
                 attackSpeedInstance.addPermanentModifier(modifier);
             }
+        });
+    }
+
+    public static void updateMaxHealth(Player player) {
+        AttributeInstance maxHealthInstance = player.getAttribute(Attributes.MAX_HEALTH);
+
+        if (maxHealthInstance == null) {
+            return;
+        }
+
+        maxHealthInstance.removeModifier(CONSTITUTION_MAX_HEALTH_UUID);
+
+        player.getCapability(PlayerStatsProvider.PLAYER_STATS).ifPresent(stats -> {
+            int vitality = stats.getVitality();
+
+            double healthBonus = vitality * HEALTH_PER_CONSTITUTION;
+
+            AttributeModifier modifier = new AttributeModifier(
+                    CONSTITUTION_MAX_HEALTH_UUID,
+                    "RPGMod Constitution Health Bonus",
+                    healthBonus,
+                    AttributeModifier.Operation.ADDITION
+            );
+
+            maxHealthInstance.addPermanentModifier(modifier);
         });
     }
 }
