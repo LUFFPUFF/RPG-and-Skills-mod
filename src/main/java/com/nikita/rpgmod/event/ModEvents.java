@@ -3,6 +3,8 @@ package com.nikita.rpgmod.event;
 
 import com.nikita.rpgmod.RPGMod;
 import com.nikita.rpgmod.capibility.PlayerStatsProvider;
+import com.nikita.rpgmod.classes.PlayerClassData;
+import com.nikita.rpgmod.classes.PlayerClassDataProvider;
 import com.nikita.rpgmod.combat.CombatEngine;
 import com.nikita.rpgmod.command.StatsCommand;
 import com.nikita.rpgmod.level.stats.PlayerLevel;
@@ -51,6 +53,7 @@ public class ModEvents {
             event.register(com.nikita.rpgmod.magic.stats.PlayerMagicStats.class);
             event.register(PlayerLevel.class);
             event.register(MobDamageTracker.class);
+            event.register(PlayerClassData.class);
         }
     }
 
@@ -64,8 +67,11 @@ public class ModEvents {
             if (!player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).isPresent()) {
                 event.addCapability(ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "player_magic"), new PlayerMagicProvider(player));
             }
-            if (!player.getCapability(PlayerLevelProvider.PLAYER_LEVEL).isPresent()) { // <-- ИСПРАВЛЕНО
+            if (!player.getCapability(PlayerLevelProvider.PLAYER_LEVEL).isPresent()) {
                 event.addCapability(ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "player_level"), new PlayerLevelProvider());
+            }
+            if (!player.getCapability(PlayerClassDataProvider.PLAYER_CLASS).isPresent()) {
+                event.addCapability(ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "player_class"), new PlayerClassDataProvider());
             }
         }
     }
@@ -101,6 +107,14 @@ public class ModEvents {
                     CompoundTag nbt = new CompoundTag();
                     oldLevel.saveNBTData(nbt);
                     newLevel.loadNBTData(nbt);
+                });
+            });
+
+            event.getOriginal().getCapability(PlayerClassDataProvider.PLAYER_CLASS).ifPresent(oldClass -> {
+                event.getEntity().getCapability(PlayerClassDataProvider.PLAYER_CLASS).ifPresent(newClass -> {
+                    CompoundTag nbt = new CompoundTag();
+                    oldClass.saveNBTData(nbt);
+                    newClass.loadNBTData(nbt);
                 });
             });
         }
@@ -305,12 +319,18 @@ public class ModEvents {
         player.getCapability(PlayerLevelProvider.PLAYER_LEVEL).ifPresent(level -> {
             player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
                 player.getCapability(PlayerStatsProvider.PLAYER_STATS).ifPresent(stats -> {
-                    PacketHandler.sendToPlayer(new SyncDataS2CPacket(
-                            level.getLevel(), level.getExperience(), level.getExperienceNeededForNextLevel(), level.getAttributePoints(),
-                            magic.getCurrentMana(), magic.getMaxMana(),
-                            player.getHealth(), player.getMaxHealth(),
-                            stats.getStrength(), stats.getDexterity(), stats.getIntelligence(), stats.getVitality(), stats.getInsight()
-                    ), player);
+                    player.getCapability(PlayerClassDataProvider.PLAYER_CLASS).ifPresent(classData -> {
+
+                        PacketHandler.sendToPlayer(new SyncDataS2CPacket(
+                                level.getLevel(), level.getExperience(), level.getExperienceNeededForNextLevel(), level.getAttributePoints(),
+                                magic.getCurrentMana(), magic.getMaxMana(),
+                                player.getHealth(), player.getMaxHealth(),
+                                player.getFoodData().getFoodLevel(),
+                                stats.getStrength(), stats.getDexterity(), stats.getIntelligence(), stats.getVitality(), stats.getInsight(),
+                                classData.getDisplayName()
+                        ), player);
+
+                    });
                 });
             });
         });

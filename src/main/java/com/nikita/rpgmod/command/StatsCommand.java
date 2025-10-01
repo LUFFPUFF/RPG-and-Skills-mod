@@ -3,9 +3,13 @@ package com.nikita.rpgmod.command;
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.FloatArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.nikita.rpgmod.capibility.PlayerStats;
 import com.nikita.rpgmod.capibility.PlayerStatsProvider;
+import com.nikita.rpgmod.classes.PlayerClass;
+import com.nikita.rpgmod.classes.PlayerClassDataProvider;
+import com.nikita.rpgmod.event.ModEvents;
 import com.nikita.rpgmod.level.stats.PlayerLevelProvider;
 import com.nikita.rpgmod.magic.stats.PlayerMagicProvider;
 import net.minecraft.commands.CommandSourceStack;
@@ -92,6 +96,19 @@ public class StatsCommand {
                 .then(Commands.literal("intelligence").executes(context -> investPoint(context.getSource(), "intelligence")))
                 .then(Commands.literal("vitality").executes(context -> investPoint(context.getSource(), "vitality")))
                 .then(Commands.literal("insight").executes(context -> investPoint(context.getSource(), "insight")))
+        );
+
+        dispatcher.register(Commands.literal("class")
+                .then(Commands.literal("set")
+                        .then(Commands.literal("primary")
+                                .then(Commands.argument("classname", StringArgumentType.word())
+                                        .executes(context -> setClass(context.getSource(), "primary", StringArgumentType.getString(context, "classname"))))
+                        )
+                        .then(Commands.literal("secondary")
+                                .then(Commands.argument("classname", StringArgumentType.word())
+                                        .executes(context -> setClass(context.getSource(), "secondary", StringArgumentType.getString(context, "classname"))))
+                        )
+                )
         );
     }
 
@@ -229,6 +246,29 @@ public class StatsCommand {
             String message = String.format("Changed mana by %.1f. Current: %.1f / %.1f", value, currentMana, maxMana);
             source.sendSuccess(() -> Component.literal(message), false);
         });
+        return 1;
+    }
+
+    private int setClass(CommandSourceStack source, String type, String className) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        try {
+            PlayerClass selectedClass = PlayerClass.valueOf(className.toUpperCase());
+
+            player.getCapability(PlayerClassDataProvider.PLAYER_CLASS).ifPresent(classData -> {
+                if (type.equals("primary")) {
+                    classData.setPrimaryClass(selectedClass);
+                } else {
+                    classData.setSecondaryClass(selectedClass);
+                }
+
+                source.sendSuccess(() -> Component.literal("Установлен " + type + " класс: " + selectedClass.getDisplayName()), false);
+
+                ModEvents.syncAllData(player);
+            });
+
+        } catch (IllegalArgumentException e) {
+            source.sendFailure(Component.literal("Неизвестный класс: " + className + ". Доступные: warrior, archer, assassin, mage, paladin, necromancer"));
+        }
         return 1;
     }
 }

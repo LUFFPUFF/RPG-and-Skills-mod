@@ -1,5 +1,6 @@
 package com.nikita.rpgmod.client.gui;
 
+import com.nikita.rpgmod.RPGMod;
 import com.nikita.rpgmod.client.ClientData;
 import com.nikita.rpgmod.network.PacketHandler;
 import com.nikita.rpgmod.network.cs2packet.InvestStatC2SPacket;
@@ -7,6 +8,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 
 public class CharacterScreen extends Screen {
 
@@ -47,7 +49,9 @@ public class CharacterScreen extends Screen {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
 
         int textColor = 0xFFFFFF;
-        guiGraphics.drawString(this.font, "Персонаж", x + 10, y + 10, textColor);
+        guiGraphics.drawString(this.font, "Класс: " + ClientData.playerClassName, x + 10, y + 10, textColor);
+
+        // Сдвигаем остальной текст
         guiGraphics.drawString(this.font, "Уровень: " + ClientData.playerLevel, x + 10, y + 25, textColor);
         guiGraphics.drawString(this.font, "Очки: " + ClientData.attributePoints, x + 100, y + 25, textColor);
 

@@ -1,25 +1,36 @@
 package com.nikita.rpgmod.client;
 
+/**
+ * Статический класс-хранилище для всех данных, полученных от сервера.
+ * GUI и HUD обращаются к этому классу, чтобы получить актуальную информацию для отрисовки.
+ */
 public class ClientData {
 
     // Уровень и опыт
-    public static int playerLevel;
-    public static int playerExperience;
-    public static int experienceNeeded;
-    public static int attributePoints;
+    public static int playerLevel = 1;
+    public static int playerExperience = 0;
+    public static int experienceNeeded = 100;
+    public static int attributePoints = 0;
 
     // Здоровье
-    public static float currentHealth;
-    public static float maxHealth;
+    public static float currentHealth = 20;
+    public static float maxHealth = 20;
 
     // Мана
-    public static float currentMana;
-    public static float maxMana;
+    public static float currentMana = 100;
+    public static float maxMana = 100;
+
+    // Голод (добавлен из предыдущих шагов)
+    public static int currentHunger = 20;
+    public static final int MAX_HUNGER = 20;
 
     // Характеристики
-    public static int strength;
-    public static int dexterity;
-    public static int intelligence;
-    public static int vitality;
-    public static int insight;
+    public static int strength = 1;
+    public static int dexterity = 1;
+    public static int intelligence = 1;
+    public static int vitality = 1;
+    public static int insight = 1;
+
+    // Класс игрока
+    public static String playerClassName = "Без класса";
 }

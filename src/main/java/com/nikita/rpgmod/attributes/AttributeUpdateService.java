@@ -82,7 +82,7 @@ public class AttributeUpdateService {
 
         if (attackSpeedInstance == null) {
             return;
-        }
+        } 
 
         attackSpeedInstance.removeModifier(DEXTERITY_ATTACK_SPEED_UUID);
         player.getCapability(PlayerStatsProvider.PLAYER_STATS).ifPresent(stats -> {
