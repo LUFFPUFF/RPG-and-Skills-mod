@@ -7,6 +7,7 @@ import com.nikita.rpgmod.classes.PlayerClassData;
 import com.nikita.rpgmod.classes.PlayerClassDataProvider;
 import com.nikita.rpgmod.combat.CombatEngine;
 import com.nikita.rpgmod.command.StatsCommand;
+import com.nikita.rpgmod.level.mob.MobLevelProvider;
 import com.nikita.rpgmod.level.stats.PlayerLevel;
 import com.nikita.rpgmod.level.stats.PlayerLevelProvider;
 import com.nikita.rpgmod.level.tracker.MobDamageTracker;
@@ -14,8 +15,10 @@ import com.nikita.rpgmod.level.tracker.MobDamageTrackerProvider;
 import com.nikita.rpgmod.magic.stats.PlayerMagicProvider;
 import com.nikita.rpgmod.network.PacketHandler;
 import com.nikita.rpgmod.network.cs2packet.SyncDataS2CPacket;
+import com.nikita.rpgmod.network.cs2packet.SyncMobLevelS2CPacket;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -24,12 +27,14 @@ import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.TickEvent;
+import net.minecraftforge.event.entity.EntityJoinLevelEvent;
 import net.minecraftforge.event.entity.living.LivingDeathEvent;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
 import net.minecraftforge.event.entity.living.MobEffectEvent;
@@ -39,8 +44,7 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraft.world.entity.Entity;
 
 import javax.annotation.Nullable;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Mod.EventBusSubscriber(modid = RPGMod.MOD_ID)
 public class ModEvents {
@@ -80,9 +84,9 @@ public class ModEvents {
     @SubscribeEvent
     public static void onAttachCapabilitiesEntity(AttachCapabilitiesEvent<Entity> event) {
         if (event.getObject() instanceof Enemy) {
-            event.getObject().getCapability(MobDamageTrackerProvider.MOB_DAMAGE_TRACKER).ifPresent(tracker -> {
-            });
+            event.getObject().getCapability(MobDamageTrackerProvider.MOB_DAMAGE_TRACKER).ifPresent(tracker -> {});
             event.addCapability(ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "mob_damage_tracker"), new MobDamageTrackerProvider());
+            event.addCapability(ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "mob_level"), new MobLevelProvider());
         }
     }
 
@@ -199,13 +203,18 @@ public class ModEvents {
     @SubscribeEvent
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase == TickEvent.Phase.END && !event.player.level().isClientSide()) {
-            Player player = event.player;
+            ServerPlayer player = (ServerPlayer) event.player;
 
             if (player.tickCount % 20 == 0) {
-                player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
-                    float regenAmount = magic.getMaxMana() * 0.01f + 1.0f;
-                    magic.addMana(regenAmount);
+                player.getCapability(PlayerStatsProvider.PLAYER_STATS).ifPresent(stats -> {
+                    player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
+                        if (magic.getCurrentMana() < magic.getMaxMana()) {
+                            float regenAmount = 1.0f + (stats.getIntelligence() * 0.2f);
+                            magic.addMana(regenAmount);
+                        }
+                    });
                 });
+                syncAllData(player);
             }
 
             if (player.tickCount % 100 == 0) {
@@ -216,16 +225,55 @@ public class ModEvents {
                     }
                 });
             }
+        }
+    }
 
-            if (player.tickCount % 40 == 0) {
-                player.getCapability(PlayerStatsProvider.PLAYER_STATS).ifPresent(stats -> {
-                    if (stats.isDangerSenseEnabled() && stats.getInsight() > 0) {
-                        detectNearestEnemy(player, stats.getInsight());
-                    }
-                });
-            }
+    @SubscribeEvent
+    public static void onMobSpawn(EntityJoinLevelEvent event) {
+        Entity entity = event.getEntity();
+
+        if (event.getLevel().isClientSide() || !(entity instanceof Enemy)) {
+            return;
         }
 
+        final double searchRadius = 64.0;
+
+        List<Player> nearbyPlayers = event.getLevel().getEntitiesOfClass(
+                Player.class,
+                entity.getBoundingBox().inflate(searchRadius)
+        );
+
+        if (nearbyPlayers.isEmpty()) {
+            entity.getCapability(MobLevelProvider.MOB_LEVEL).ifPresent(mobLevelCap -> {
+                mobLevelCap.setLevel(1);
+            });
+            return;
+        }
+
+        OptionalInt maxPlayerLevelOpt = nearbyPlayers.stream()
+                .mapToInt(player -> player.getCapability(PlayerLevelProvider.PLAYER_LEVEL)
+                        .map(PlayerLevel::getLevel)
+                        .orElse(1))
+                .max();
+
+        int maxPlayerLevel = maxPlayerLevelOpt.getAsInt();
+        Random random = new Random();
+
+        double dimensionMultiplier = 1.0;
+        ResourceKey<Level> dimensionKey = event.getLevel().dimension();
+        if (dimensionKey.equals(Level.NETHER)) {
+            dimensionMultiplier = 1.5;
+        } else if (dimensionKey.equals(Level.END)) {
+            dimensionMultiplier = 2.0;
+        }
+
+        int levelVariance = random.nextInt(5) - 2;
+        int calculatedLevel = (int) Math.round((maxPlayerLevel + levelVariance) * dimensionMultiplier);
+        int finalLevel = Math.max(1, Math.min(100, calculatedLevel));
+
+        entity.getCapability(MobLevelProvider.MOB_LEVEL).ifPresent(mobLevelCap -> {
+            mobLevelCap.setLevel(finalLevel);
+        });
     }
 
     @SubscribeEvent
@@ -263,49 +311,19 @@ public class ModEvents {
         }
     }
 
-    // Вспомогательный метод поиск врагов
-    private static void detectNearestEnemy(Player player, int insight) {
-        double radius = 10.0 + (insight * 0.5);
-        AABB searchBox = new AABB(player.blockPosition()).inflate(radius);
+    @SubscribeEvent
+    public static void onStartTracking(PlayerEvent.StartTracking event) {
+        Entity target = event.getTarget();
 
-        LivingEntity closestEnemy = null;
-        double closestDistanceSq = Double.MAX_VALUE;
+        if (target instanceof Enemy && event.getEntity() instanceof ServerPlayer player) {
 
-        for (LivingEntity entity : player.level().getEntitiesOfClass(LivingEntity.class, searchBox, e -> e instanceof Enemy && e.isAlive())) {
-            double distanceSq = player.distanceToSqr(entity);
-            if (distanceSq < closestDistanceSq) {
-                closestDistanceSq = distanceSq;
-                closestEnemy = entity;
-            }
+            target.getCapability(MobLevelProvider.MOB_LEVEL).ifPresent(mobLevelCap -> {
+                PacketHandler.sendToPlayer(new SyncMobLevelS2CPacket(target.getId(), mobLevelCap.getLevel()), player);
+            });
         }
-
-        if (closestEnemy != null) {
-            String direction = getDirection(player.position(), closestEnemy.position());
-            String message = String.format("Вы чувствуете опасность с %s (%.0fм)", direction, Math.sqrt(closestDistanceSq));
-
-            if (player instanceof ServerPlayer serverPlayer) {
-                serverPlayer.sendSystemMessage(Component.literal(message), true);
-            }
-        }
-    }
-
-    private static String getDirection(Vec3 from, Vec3 to) {
-        Vec3 vector = to.subtract(from).normalize();
-        double angle = Math.toDegrees(Math.atan2(vector.x, vector.z));
-        if (angle < 0) angle += 360;
-
-        if (angle >= 337.5 || angle < 22.5) return "севера";
-        if (angle < 67.5) return "северо-востока";
-        if (angle < 112.5) return "востока";
-        if (angle < 157.5) return "юго-востока";
-        if (angle < 202.5) return "юга";
-        if (angle < 247.5) return "юго-запада";
-        if (angle < 292.5) return "запада";
-        return "северо-запада";
     }
 
     private static int getBaseXpForMob(LivingEntity mob) {
-
         if (mob instanceof EnderDragon) return 12000;
         if (mob instanceof WitherBoss) return 1000;
 

@@ -55,6 +55,15 @@ public class SyncDataS2CPacket {
 
     public static void handle(SyncDataS2CPacket pkt, Supplier<NetworkEvent.Context> context) {
         context.get().enqueueWork(() -> {
+
+            if (ClientData.maxHealth == 0) {
+                ClientData.visualHealth = pkt.currentHealth;
+            }
+
+            if (ClientData.maxMana == 0) {
+                ClientData.visualMana = pkt.currentMana;
+            }
+
             ClientData.playerLevel = pkt.level; ClientData.playerExperience = pkt.experience; ClientData.experienceNeeded = pkt.experienceNeeded; ClientData.attributePoints = pkt.attributePoints;
             ClientData.currentMana = pkt.currentMana; ClientData.maxMana = pkt.maxMana;
             ClientData.currentHealth = pkt.currentHealth; ClientData.maxHealth = pkt.maxHealth;

@@ -15,7 +15,10 @@ import com.nikita.rpgmod.magic.stats.PlayerMagicProvider;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerPlayer;
+
+import java.util.Objects;
 
 public class StatsCommand {
 
@@ -110,6 +113,25 @@ public class StatsCommand {
                         )
                 )
         );
+
+        dispatcher.register(Commands.literal("rpgtest")
+                .then(Commands.literal("damage")
+                        .then(Commands.argument("amount", FloatArgumentType.floatArg(0))
+                                .executes(context -> dealDamage(context.getSource(), FloatArgumentType.getFloat(context, "amount"))))
+                )
+                .then(Commands.literal("heal")
+                        .then(Commands.argument("amount", FloatArgumentType.floatArg(0))
+                                .executes(context -> healPlayer(context.getSource(), FloatArgumentType.getFloat(context, "amount"))))
+                )
+                .then(Commands.literal("spendmana")
+                        .then(Commands.argument("amount", FloatArgumentType.floatArg(0))
+                                .executes(context -> spendMana(context.getSource(), FloatArgumentType.getFloat(context, "amount"))))
+                )
+                .then(Commands.literal("regenmana")
+                        .then(Commands.argument("amount", FloatArgumentType.floatArg(0))
+                                .executes(context -> regenMana(context.getSource(), FloatArgumentType.getFloat(context, "amount"))))
+                )
+        );
     }
 
     private int getLevelInfo(CommandSourceStack source) throws CommandSyntaxException {
@@ -155,11 +177,8 @@ public class StatsCommand {
                             case "vitality" -> stats.addVitality(1, player);
                             case "insight" -> stats.addInsight(1);
                         }
-                        source.sendSuccess(() -> Component.literal("Вы вложили очко в " + statName), false);
                     }
                 });
-            } else {
-                source.sendFailure(Component.literal("У вас нет свободных очков характеристик."));
             }
         });
         return 1;
@@ -229,10 +248,6 @@ public class StatsCommand {
         ServerPlayer player = source.getPlayerOrException();
         player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
             magic.setMana(value);
-            float currentMana = magic.getCurrentMana();
-            float maxMana = magic.getMaxMana();
-            String message = String.format("Set mana to %.1f / %.1f", currentMana, maxMana);
-            source.sendSuccess(() -> Component.literal(message), false);
         });
         return 1;
     }
@@ -241,10 +256,6 @@ public class StatsCommand {
         ServerPlayer player = source.getPlayerOrException();
         player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
             magic.addMana(value);
-            float currentMana = magic.getCurrentMana();
-            float maxMana = magic.getMaxMana();
-            String message = String.format("Changed mana by %.1f. Current: %.1f / %.1f", value, currentMana, maxMana);
-            source.sendSuccess(() -> Component.literal(message), false);
         });
         return 1;
     }
@@ -269,6 +280,46 @@ public class StatsCommand {
         } catch (IllegalArgumentException e) {
             source.sendFailure(Component.literal("Неизвестный класс: " + className + ". Доступные: warrior, archer, assassin, mage, paladin, necromancer"));
         }
+        return 1;
+    }
+
+    private int dealDamage(CommandSourceStack source, float amount) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        player.hurt(player.damageSources().generic(), amount);
+
+        Objects.requireNonNull(player.getServer()).tell(new TickTask(1, () -> ModEvents.syncAllData(player)));
+
+        source.sendSuccess(() -> Component.literal("Вы получили " + amount + " урона"), false);
+        return 1;
+    }
+
+    private int healPlayer(CommandSourceStack source, float amount) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        player.heal(amount);
+
+        Objects.requireNonNull(player.getServer()).tell(new TickTask(1, () -> ModEvents.syncAllData(player)));
+
+        source.sendSuccess(() -> Component.literal("Вы исцелились на " + amount), false);
+        return 1;
+    }
+
+    private int spendMana(CommandSourceStack source, float amount) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
+            magic.consumeMana(amount);
+            ModEvents.syncAllData(player);
+            source.sendSuccess(() -> Component.literal("Вы потратили " + amount + " маны"), false);
+        });
+        return 1;
+    }
+
+    private int regenMana(CommandSourceStack source, float amount) throws CommandSyntaxException {
+        ServerPlayer player = source.getPlayerOrException();
+        player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
+            magic.addMana(amount);
+            ModEvents.syncAllData(player);
+            source.sendSuccess(() -> Component.literal("Вы восстановили " + amount + " маны"), false);
+        });
         return 1;
     }
 }

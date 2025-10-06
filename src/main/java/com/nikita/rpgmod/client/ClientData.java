@@ -14,10 +14,12 @@ public class ClientData {
 
     // Здоровье
     public static float currentHealth = 20;
+    public static float visualHealth;
     public static float maxHealth = 20;
 
     // Мана
     public static float currentMana = 100;
+    public static float visualMana;
     public static float maxMana = 100;
 
     // Голод (добавлен из предыдущих шагов)

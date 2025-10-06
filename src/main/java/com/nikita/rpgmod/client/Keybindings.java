@@ -12,4 +12,11 @@ public class Keybindings {
             InputConstants.getKey(InputConstants.KEY_P, -1),
             "key.category.rpgmod"
     );
+
+    public static final KeyMapping USE_INSIGHT_SKILL = new KeyMapping(
+            "key.rpgmod.use_insight_skill",
+            KeyConflictContext.IN_GAME,
+            InputConstants.getKey(InputConstants.KEY_V, -1),
+            "key.category.rpgmod"
+    );
 }

@@ -36,16 +36,13 @@ public class PlayerLevel {
         if (level >= 100 ) return;
 
         this.experience += amount;
-        player.sendSystemMessage(Component.literal(String.format("§e+%d XP", amount)), true);
 
         while (this.experience >= getExperienceNeededForNextLevel()) {
             int neededXp = getExperienceNeededForNextLevel();
             this.experience -= neededXp;
             this.level++;
             this.attributePoints += POINTS_PER_LEVEL;
-
-            player.sendSystemMessage(Component.literal(String.format("§bПоздравляем! Вы достигли %d уровня!", this.level)));
-            //TODO звуковое оповещение + красивая картинка
+            //TODO звуковое оповещение
         }
 
         ModEvents.syncAllData(player);

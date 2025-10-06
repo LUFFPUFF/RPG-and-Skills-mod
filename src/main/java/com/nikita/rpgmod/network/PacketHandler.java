@@ -1,8 +1,7 @@
 package com.nikita.rpgmod.network;
 
 import com.nikita.rpgmod.RPGMod;
-import com.nikita.rpgmod.network.cs2packet.InvestStatC2SPacket;
-import com.nikita.rpgmod.network.cs2packet.SyncDataS2CPacket;
+import com.nikita.rpgmod.network.cs2packet.*;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.network.NetworkDirection;
@@ -31,6 +30,21 @@ public class PacketHandler {
                 .encoder(SyncDataS2CPacket::encode)
                 .decoder(SyncDataS2CPacket::decode)
                 .consumerMainThread(SyncDataS2CPacket::handle)
+                .add();
+        INSTANCE.messageBuilder(SyncMobLevelS2CPacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SyncMobLevelS2CPacket::encode)
+                .decoder(SyncMobLevelS2CPacket::decode)
+                .consumerMainThread(SyncMobLevelS2CPacket::handle)
+                .add();
+        INSTANCE.messageBuilder(UseInsightSkillC2SPacket.class, id++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(UseInsightSkillC2SPacket::encode)
+                .decoder(UseInsightSkillC2SPacket::decode)
+                .consumerMainThread(UseInsightSkillC2SPacket::handle)
+                .add();
+        INSTANCE.messageBuilder(HighlightEnemiesS2CPacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(HighlightEnemiesS2CPacket::encode)
+                .decoder(HighlightEnemiesS2CPacket::decode)
+                .consumerMainThread(HighlightEnemiesS2CPacket::handle)
                 .add();
     }
 

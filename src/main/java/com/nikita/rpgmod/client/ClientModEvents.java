@@ -14,6 +14,7 @@ public class ClientModEvents {
     @SubscribeEvent
     public static void onKeyRegister(RegisterKeyMappingsEvent event) {
         event.register(Keybindings.OPEN_CHARACTER_SCREEN);
+        event.register(Keybindings.USE_INSIGHT_SKILL);
     }
 
     @SubscribeEvent
