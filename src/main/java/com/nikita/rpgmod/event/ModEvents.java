@@ -2,22 +2,29 @@ package com.nikita.rpgmod.event;
 
 
 import com.nikita.rpgmod.RPGMod;
+import com.nikita.rpgmod.capibility.PlayerAnimationData;
+import com.nikita.rpgmod.capibility.PlayerAnimationProvider;
 import com.nikita.rpgmod.capibility.PlayerStatsProvider;
 import com.nikita.rpgmod.classes.PlayerClassData;
 import com.nikita.rpgmod.classes.PlayerClassDataProvider;
 import com.nikita.rpgmod.combat.CombatEngine;
 import com.nikita.rpgmod.command.StatsCommand;
+import com.nikita.rpgmod.item.ModItems;
 import com.nikita.rpgmod.level.mob.MobLevelProvider;
-import com.nikita.rpgmod.level.stats.PlayerLevel;
-import com.nikita.rpgmod.level.stats.PlayerLevelProvider;
+import com.nikita.rpgmod.level.PlayerLevel;
+import com.nikita.rpgmod.level.PlayerLevelProvider;
 import com.nikita.rpgmod.level.tracker.MobDamageTracker;
 import com.nikita.rpgmod.level.tracker.MobDamageTrackerProvider;
-import com.nikita.rpgmod.magic.stats.PlayerMagicProvider;
+import com.nikita.rpgmod.magic.PlayerMagicProvider;
+import com.nikita.rpgmod.magic.PlayerMagicStats;
+import com.nikita.rpgmod.magic.spell.ISpell;
+import com.nikita.rpgmod.magic.spell.ModSpells;
+import com.nikita.rpgmod.magic.spell.capability.PlayerSpellData;
+import com.nikita.rpgmod.magic.spell.capability.PlayerSpellsProvider;
 import com.nikita.rpgmod.network.PacketHandler;
 import com.nikita.rpgmod.network.cs2packet.SyncDataS2CPacket;
 import com.nikita.rpgmod.network.cs2packet.SyncMobLevelS2CPacket;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
@@ -28,8 +35,6 @@ import net.minecraft.world.entity.boss.wither.WitherBoss;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
 import net.minecraftforge.common.capabilities.RegisterCapabilitiesEvent;
 import net.minecraftforge.event.AttachCapabilitiesEvent;
 import net.minecraftforge.event.RegisterCommandsEvent;
@@ -54,10 +59,12 @@ public class ModEvents {
         @SubscribeEvent
         public static void registerCapabilities(RegisterCapabilitiesEvent event) {
             event.register(com.nikita.rpgmod.capibility.PlayerStats.class);
-            event.register(com.nikita.rpgmod.magic.stats.PlayerMagicStats.class);
+            event.register(PlayerMagicStats.class);
             event.register(PlayerLevel.class);
             event.register(MobDamageTracker.class);
             event.register(PlayerClassData.class);
+            event.register(PlayerSpellData.class);
+            event.register(PlayerAnimationData.class);
         }
     }
 
@@ -76,6 +83,12 @@ public class ModEvents {
             }
             if (!player.getCapability(PlayerClassDataProvider.PLAYER_CLASS).isPresent()) {
                 event.addCapability(ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "player_class"), new PlayerClassDataProvider());
+            }
+            if (!player.getCapability(PlayerSpellsProvider.PLAYER_SPELLS).isPresent()) {
+                event.addCapability(ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "player_spells"), new PlayerSpellsProvider());
+            }
+            if (!player.getCapability(PlayerAnimationProvider.PLAYER_ANIMATION).isPresent()) {
+                event.addCapability(ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "player_animation"), new PlayerAnimationProvider());
             }
         }
     }
@@ -103,9 +116,11 @@ public class ModEvents {
                     newStats.setIntelligence(oldStats.getIntelligence());
                 });
             });
+
             event.getEntity().getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(newMagic -> {
                 newMagic.setMana(newMagic.getMaxMana());
             });
+
             event.getOriginal().getCapability(PlayerLevelProvider.PLAYER_LEVEL).ifPresent(oldLevel -> {
                 event.getEntity().getCapability(PlayerLevelProvider.PLAYER_LEVEL).ifPresent(newLevel -> {
                     CompoundTag nbt = new CompoundTag();
@@ -120,6 +135,16 @@ public class ModEvents {
                     oldClass.saveNBTData(nbt);
                     newClass.loadNBTData(nbt);
                 });
+            });
+
+            event.getOriginal().getCapability(PlayerSpellsProvider.PLAYER_SPELLS).ifPresent(oldSpells -> {
+                event.getEntity().getCapability(PlayerSpellsProvider.PLAYER_SPELLS).ifPresent(newSpells -> {
+                    CompoundTag nbt = new CompoundTag();
+                    oldSpells.saveNBTData(nbt);
+                    newSpells.loadNBTData(nbt);
+                });
+            });
+            event.getEntity().getCapability(PlayerAnimationProvider.PLAYER_ANIMATION).ifPresent(newAnim -> {
             });
         }
     }
@@ -205,6 +230,21 @@ public class ModEvents {
         if (event.phase == TickEvent.Phase.END && !event.player.level().isClientSide()) {
             ServerPlayer player = (ServerPlayer) event.player;
 
+            player.getCapability(PlayerAnimationProvider.PLAYER_ANIMATION).ifPresent(PlayerAnimationData::tick);
+
+            player.getCapability(PlayerSpellsProvider.PLAYER_SPELLS).ifPresent(spells -> {
+                boolean isHoldingGrimoire = player.getMainHandItem().is(ModItems.GRIMOIRE_HOURGLASS.get())
+                        || player.getOffhandItem().is(ModItems.GRIMOIRE_HOURGLASS.get());
+
+                if (isHoldingGrimoire) {
+                    spells.learnSpell(ModSpells.ERODING_SHOT.getRegistryName());
+                    spells.learnSpell(ModSpells.SAND_SQUALL.getRegistryName());
+                } else {
+                    spells.forgetSpell(ModSpells.ERODING_SHOT.getRegistryName());
+                    spells.forgetSpell(ModSpells.SAND_SQUALL.getRegistryName());
+                }
+            });
+
             if (player.tickCount % 20 == 0) {
                 player.getCapability(PlayerStatsProvider.PLAYER_STATS).ifPresent(stats -> {
                     player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
@@ -225,7 +265,10 @@ public class ModEvents {
                     }
                 });
             }
+
+
         }
+
     }
 
     @SubscribeEvent
@@ -338,16 +381,21 @@ public class ModEvents {
             player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
                 player.getCapability(PlayerStatsProvider.PLAYER_STATS).ifPresent(stats -> {
                     player.getCapability(PlayerClassDataProvider.PLAYER_CLASS).ifPresent(classData -> {
+                        player.getCapability(PlayerSpellsProvider.PLAYER_SPELLS).ifPresent(spells -> {
 
-                        PacketHandler.sendToPlayer(new SyncDataS2CPacket(
-                                level.getLevel(), level.getExperience(), level.getExperienceNeededForNextLevel(), level.getAttributePoints(),
-                                magic.getCurrentMana(), magic.getMaxMana(),
-                                player.getHealth(), player.getMaxHealth(),
-                                player.getFoodData().getFoodLevel(),
-                                stats.getStrength(), stats.getDexterity(), stats.getIntelligence(), stats.getVitality(), stats.getInsight(),
-                                classData.getDisplayName()
-                        ), player);
+                            ISpell currentSpell = spells.getCurrentSpell();
+                            ResourceLocation spellId = currentSpell != null ? currentSpell.getRegistryName() : null;
 
+                            PacketHandler.sendToPlayer(new SyncDataS2CPacket(
+                                    level.getLevel(), level.getExperience(), level.getExperienceNeededForNextLevel(), level.getAttributePoints(),
+                                    magic.getCurrentMana(), magic.getMaxMana(),
+                                    player.getHealth(), player.getMaxHealth(),
+                                    player.getFoodData().getFoodLevel(),
+                                    stats.getStrength(), stats.getDexterity(), stats.getIntelligence(), stats.getVitality(), stats.getInsight(),
+                                    classData.getDisplayName(),
+                                    spellId
+                            ), player);
+                        });
                     });
                 });
             });

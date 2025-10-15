@@ -1,7 +1,7 @@
 package com.nikita.rpgmod.network.cs2packet;
 
 import com.nikita.rpgmod.capibility.PlayerStatsProvider;
-import com.nikita.rpgmod.magic.stats.PlayerMagicProvider;
+import com.nikita.rpgmod.magic.PlayerMagicProvider;
 import com.nikita.rpgmod.network.PacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
@@ -33,7 +33,6 @@ public class UseInsightSkillC2SPacket {
         ServerPlayer player = context.get().getSender();
         if (player == null) return;
 
-        // Получаем сразу все необходимые capabilities
         player.getCapability(PlayerStatsProvider.PLAYER_STATS).ifPresent(stats -> {
             player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
 

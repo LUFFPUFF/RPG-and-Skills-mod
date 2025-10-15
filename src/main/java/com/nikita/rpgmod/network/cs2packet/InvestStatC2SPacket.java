@@ -2,7 +2,7 @@ package com.nikita.rpgmod.network.cs2packet;
 
 import com.nikita.rpgmod.capibility.PlayerStatsProvider;
 import com.nikita.rpgmod.event.ModEvents;
-import com.nikita.rpgmod.level.stats.PlayerLevelProvider;
+import com.nikita.rpgmod.level.PlayerLevelProvider;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;

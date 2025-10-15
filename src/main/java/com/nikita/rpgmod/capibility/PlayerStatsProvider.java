@@ -33,8 +33,6 @@ public class PlayerStatsProvider implements ICapabilityProvider, INBTSerializabl
         if (capability == PLAYER_STATS) {
             return optional.cast();
         }
-
-        logger.warn("Capability {} does not exist!", capability);
         return LazyOptional.empty();
     }
 

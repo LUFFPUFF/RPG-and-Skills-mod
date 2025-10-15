@@ -29,8 +29,11 @@ public class HudOverlay implements IGuiOverlay {
 
     private static final ResourceLocation EFFS_BORDER_TEXTURE = ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/border_classes/effs/effs_border.png");
 
+    private static final ResourceLocation SPELL_SLOT_TEXTURE = ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/hud/spell_slot.png");
+    private static final ResourceLocation COOLDOWN_TEXTURE = ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/hud/cooldown.png");
+
     private static final int LEVELUP_TOTAL_FRAMES = 17;
-    private static final int LEVELUP_TICKS_PER_FRAME = 10;
+    private static final int LEVELUP_TICKS_PER_FRAME = 8;
     private static final int INITIAL_HOLD_DURATION = 200;
 
     private static final List<ResourceLocation> LEVELUP_FRAMES = new ArrayList<>();

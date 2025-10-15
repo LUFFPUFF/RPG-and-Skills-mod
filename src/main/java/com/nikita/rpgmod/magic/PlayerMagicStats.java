@@ -1,4 +1,4 @@
-package com.nikita.rpgmod.magic.stats;
+package com.nikita.rpgmod.magic;
 
 import com.nikita.rpgmod.capibility.PlayerStats;
 import net.minecraft.nbt.CompoundTag;

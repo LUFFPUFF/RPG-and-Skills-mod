@@ -1,5 +1,9 @@
 package com.nikita.rpgmod.client;
 
+import net.minecraft.resources.ResourceLocation;
+
+import javax.annotation.Nullable;
+
 /**
  * Статический класс-хранилище для всех данных, полученных от сервера.
  * GUI и HUD обращаются к этому классу, чтобы получить актуальную информацию для отрисовки.
@@ -35,4 +39,7 @@ public class ClientData {
 
     // Класс игрока
     public static String playerClassName = "Без класса";
+
+    @Nullable
+    public static ResourceLocation currentSpellId = null;
 }

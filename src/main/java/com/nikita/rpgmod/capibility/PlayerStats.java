@@ -1,8 +1,8 @@
 package com.nikita.rpgmod.capibility;
 
 import com.nikita.rpgmod.attributes.AttributeUpdateService;
-import com.nikita.rpgmod.magic.stats.PlayerMagicProvider;
-import com.nikita.rpgmod.magic.stats.PlayerMagicStats;
+import com.nikita.rpgmod.magic.PlayerMagicProvider;
+import com.nikita.rpgmod.magic.PlayerMagicStats;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.world.entity.player.Player;
 

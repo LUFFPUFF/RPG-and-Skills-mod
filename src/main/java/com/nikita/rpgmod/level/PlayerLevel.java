@@ -1,8 +1,7 @@
-package com.nikita.rpgmod.level.stats;
+package com.nikita.rpgmod.level;
 
 import com.nikita.rpgmod.event.ModEvents;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 
 public class PlayerLevel {

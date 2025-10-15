@@ -46,6 +46,21 @@ public class PacketHandler {
                 .decoder(HighlightEnemiesS2CPacket::decode)
                 .consumerMainThread(HighlightEnemiesS2CPacket::handle)
                 .add();
+        INSTANCE.messageBuilder(CastSpellC2SPacket.class, id++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(CastSpellC2SPacket::encode)
+                .decoder(CastSpellC2SPacket::decode)
+                .consumerMainThread(CastSpellC2SPacket::handle)
+                .add();
+        INSTANCE.messageBuilder(ChangeSpellC2SPacket.class, id++, NetworkDirection.PLAY_TO_SERVER)
+                .encoder(ChangeSpellC2SPacket::encode)
+                .decoder(ChangeSpellC2SPacket::decode)
+                .consumerMainThread(ChangeSpellC2SPacket::handle)
+                .add();
+        INSTANCE.messageBuilder(SyncAnimationS2CPacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)
+                .encoder(SyncAnimationS2CPacket::encode)
+                .decoder(SyncAnimationS2CPacket::decode)
+                .consumerMainThread(SyncAnimationS2CPacket::handle)
+                .add();
     }
 
     public static <MSG> void sendToServer(MSG message) {

@@ -3,7 +3,10 @@ package com.nikita.rpgmod;
 import com.mojang.logging.LogUtils;
 import com.nikita.rpgmod.client.ClientForgeEvents;
 import com.nikita.rpgmod.client.ClientModEvents;
+import com.nikita.rpgmod.entity.ModEntities;
 import com.nikita.rpgmod.event.ModEvents;
+import com.nikita.rpgmod.item.ModItems;
+import com.nikita.rpgmod.magic.spell.ModSpells;
 import com.nikita.rpgmod.network.PacketHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -26,6 +29,10 @@ public class RPGMod {
 
         MinecraftForge.EVENT_BUS.register(ModEvents.class);
         MinecraftForge.EVENT_BUS.register(ClientForgeEvents.class);
+
+        ModItems.register(modEventBus);
+        ModEntities.register(modEventBus);
+        ModSpells.register();
 
         PacketHandler.register();
 

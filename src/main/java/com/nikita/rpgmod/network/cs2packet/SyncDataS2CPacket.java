@@ -2,7 +2,9 @@ package com.nikita.rpgmod.network.cs2packet;
 
 import com.nikita.rpgmod.client.ClientData;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraftforge.network.NetworkEvent;
+import javax.annotation.Nullable;
 
 import java.util.function.Supplier;
 
@@ -15,13 +17,17 @@ public class SyncDataS2CPacket {
     private final int strength, dexterity, intelligence, vitality, insight;
     private final String playerClassName;
 
-    public SyncDataS2CPacket(int level, int experience, int expNeeded, int points, float curMana, float maxMana, float curHealth, float maxHealth, int curHunger, int str, int dex, int intel, int vit, int ins, String playerClassName) {
+    @Nullable
+    private final ResourceLocation currentSpellId;
+
+    public SyncDataS2CPacket(int level, int experience, int expNeeded, int points, float curMana, float maxMana, float curHealth, float maxHealth, int curHunger, int str, int dex, int intel, int vit, int ins, String playerClassName, @Nullable ResourceLocation currentSpellId) {
         this.level = level; this.experience = experience; this.experienceNeeded = expNeeded; this.attributePoints = points;
         this.currentMana = curMana; this.maxMana = maxMana;
         this.currentHealth = curHealth; this.maxHealth = maxHealth;
         this.currentHunger = curHunger;
         this.strength = str; this.dexterity = dex; this.intelligence = intel; this.vitality = vit; this.insight = ins;
         this.playerClassName = playerClassName;
+        this.currentSpellId = currentSpellId;
     }
 
     public static void encode(SyncDataS2CPacket pkt, FriendlyByteBuf buf) {
@@ -31,6 +37,12 @@ public class SyncDataS2CPacket {
         buf.writeInt(pkt.currentHunger);
         buf.writeInt(pkt.strength); buf.writeInt(pkt.dexterity); buf.writeInt(pkt.intelligence); buf.writeInt(pkt.vitality); buf.writeInt(pkt.insight);
         buf.writeUtf(pkt.playerClassName);
+        if (pkt.currentSpellId != null) {
+            buf.writeBoolean(true);
+            buf.writeResourceLocation(pkt.currentSpellId);
+        } else {
+            buf.writeBoolean(false);
+        }
     }
 
     public static SyncDataS2CPacket decode(FriendlyByteBuf buf) {
@@ -49,8 +61,12 @@ public class SyncDataS2CPacket {
         int vitality = buf.readInt();
         int insight = buf.readInt();
         String playerClassName = buf.readUtf();
+        ResourceLocation currentSpellId = null;
+        if (buf.readBoolean()) {
+            currentSpellId = buf.readResourceLocation();
+        }
 
-        return new SyncDataS2CPacket(level, experience, experienceNeeded, attributePoints, currentMana, maxMana, currentHealth, maxHealth, currentHunger, strength, dexterity, intelligence, vitality, insight, playerClassName);
+        return new SyncDataS2CPacket(level, experience, experienceNeeded, attributePoints, currentMana, maxMana, currentHealth, maxHealth, currentHunger, strength, dexterity, intelligence, vitality, insight, playerClassName, currentSpellId);
     }
 
     public static void handle(SyncDataS2CPacket pkt, Supplier<NetworkEvent.Context> context) {
@@ -70,6 +86,7 @@ public class SyncDataS2CPacket {
             ClientData.currentHunger = pkt.currentHunger;
             ClientData.strength = pkt.strength; ClientData.dexterity = pkt.dexterity; ClientData.intelligence = pkt.intelligence; ClientData.vitality = pkt.vitality; ClientData.insight = pkt.insight;
             ClientData.playerClassName = pkt.playerClassName;
+            ClientData.currentSpellId = pkt.currentSpellId;
         });
         context.get().setPacketHandled(true);
     }
