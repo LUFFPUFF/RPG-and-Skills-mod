@@ -2,8 +2,6 @@ package com.nikita.rpgmod.event;
 
 
 import com.nikita.rpgmod.RPGMod;
-import com.nikita.rpgmod.capibility.PlayerAnimationData;
-import com.nikita.rpgmod.capibility.PlayerAnimationProvider;
 import com.nikita.rpgmod.capibility.PlayerStatsProvider;
 import com.nikita.rpgmod.classes.PlayerClassData;
 import com.nikita.rpgmod.classes.PlayerClassDataProvider;
@@ -64,7 +62,6 @@ public class ModEvents {
             event.register(MobDamageTracker.class);
             event.register(PlayerClassData.class);
             event.register(PlayerSpellData.class);
-            event.register(PlayerAnimationData.class);
         }
     }
 
@@ -86,9 +83,6 @@ public class ModEvents {
             }
             if (!player.getCapability(PlayerSpellsProvider.PLAYER_SPELLS).isPresent()) {
                 event.addCapability(ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "player_spells"), new PlayerSpellsProvider());
-            }
-            if (!player.getCapability(PlayerAnimationProvider.PLAYER_ANIMATION).isPresent()) {
-                event.addCapability(ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "player_animation"), new PlayerAnimationProvider());
             }
         }
     }
@@ -143,8 +137,6 @@ public class ModEvents {
                     oldSpells.saveNBTData(nbt);
                     newSpells.loadNBTData(nbt);
                 });
-            });
-            event.getEntity().getCapability(PlayerAnimationProvider.PLAYER_ANIMATION).ifPresent(newAnim -> {
             });
         }
     }
@@ -229,8 +221,6 @@ public class ModEvents {
     public static void onPlayerTick(TickEvent.PlayerTickEvent event) {
         if (event.phase == TickEvent.Phase.END && !event.player.level().isClientSide()) {
             ServerPlayer player = (ServerPlayer) event.player;
-
-            player.getCapability(PlayerAnimationProvider.PLAYER_ANIMATION).ifPresent(PlayerAnimationData::tick);
 
             player.getCapability(PlayerSpellsProvider.PLAYER_SPELLS).ifPresent(spells -> {
                 boolean isHoldingGrimoire = player.getMainHandItem().is(ModItems.GRIMOIRE_HOURGLASS.get())

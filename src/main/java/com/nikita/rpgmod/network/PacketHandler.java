@@ -56,11 +56,6 @@ public class PacketHandler {
                 .decoder(ChangeSpellC2SPacket::decode)
                 .consumerMainThread(ChangeSpellC2SPacket::handle)
                 .add();
-        INSTANCE.messageBuilder(SyncAnimationS2CPacket.class, id++, NetworkDirection.PLAY_TO_CLIENT)
-                .encoder(SyncAnimationS2CPacket::encode)
-                .decoder(SyncAnimationS2CPacket::decode)
-                .consumerMainThread(SyncAnimationS2CPacket::handle)
-                .add();
     }
 
     public static <MSG> void sendToServer(MSG message) {
