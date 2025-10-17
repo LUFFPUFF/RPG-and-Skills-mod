@@ -1,0 +1,24 @@
+{
+  "item.rpgmod.grimoire_hourglass": "Гримуар Песочных Часов",
+  "item.rpgmod.grimoire_hourglass.tooltip": "§7Древний фолиант, содержащий магию песка и времени.§r",
+
+  "spell.rpgmod.eroding_shot": "Эродирующий Выстрел",
+  "spell.rpgmod.eroding_shot.desc": "§7Выпускает снаряд, наносящий §bмагический урон§7 и §eзамедляющий§7 цель.§r",
+  "spell.rpgmod.sand_squall": "Песчаный Шквал",
+  "spell.rpgmod.sand_squall.desc": "§7Создает перед собой конус острого песка, поражая несколько целей.§r",
+  "spell.rpgmod.stasis_field": "Поле Стазиса",
+  "spell.rpgmod.stasis_field.desc": "§7Замораживает время в области вокруг вас, почти полностью останавливая врагов.§r",
+  "spell.rpgmod.quicksand_trap": "Зыбучие Пески",
+  "spell.rpgmod.quicksand_trap.desc": "§7Создает на земле ловушку из зыбучих песков, которая обездвиживает и ослабляет врагов.§r",
+  "spell.rpgmod.dune_shift": "Дюна-Призрак",
+  "spell.rpgmod.dune_shift.desc": "§7Быстрое перемещение вперед, позволяющее уклоняться от атак.§r",
+  "spell.rpgmod.sandstorm_aegis": "Эгида Песчаной Бури",
+  "spell.rpgmod.sandstorm_aegis.desc": "§7Ультимейт: Окружает вас защитным вихрем, который снижает урон и ранит врагов поблизости.§r",
+
+  "key.category.rpgmod": "RPG Mod",
+  "key.rpgmod.open_character_screen": "Открыть профиль персонажа",
+  "key.rpgmod.use_insight_skill": "Использовать Проницательность",
+  "key.rpgmod.cast_spell": "Использовать заклинание",
+  "key.rpgmod.next_spell": "Следующее заклинание",
+  "key.rpgmod.previous_spell": "Предыдущее заклинание"
+}

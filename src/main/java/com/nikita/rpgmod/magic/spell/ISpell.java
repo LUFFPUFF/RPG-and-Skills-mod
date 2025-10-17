@@ -4,6 +4,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 
 /**
  * Интерфейс, представляющий одно магическое заклинание.
@@ -63,5 +64,17 @@ public interface ISpell {
      */
     void cast(ServerPlayer player);
 
+    /**
+     * Возвращает предмет-заглушку, используемый для отслеживания перезарядки этого заклинания.
+     * @return Предмет для кулдауна.
+     */
+    Item getCooldownItem();
+
+    /**
+     * Возвращает подробное описание заклинания.
+     * Будет показано при наведении на иконку.
+     * @return Component с описанием.
+     */
+    Component getDescription();
 
 }

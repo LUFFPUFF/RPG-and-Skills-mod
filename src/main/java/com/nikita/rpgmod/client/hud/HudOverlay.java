@@ -1,12 +1,18 @@
 package com.nikita.rpgmod.client.hud;
 
+import com.mojang.blaze3d.systems.RenderSystem;
 import com.nikita.rpgmod.RPGMod;
 import com.nikita.rpgmod.client.ClientData;
+import com.nikita.rpgmod.item.ModItems;
+import com.nikita.rpgmod.magic.spell.ISpell;
+import com.nikita.rpgmod.magic.spell.register.SpellRegistry;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraftforge.client.gui.overlay.ForgeGui;
 import net.minecraftforge.client.gui.overlay.IGuiOverlay;
 
@@ -29,7 +35,8 @@ public class HudOverlay implements IGuiOverlay {
 
     private static final ResourceLocation EFFS_BORDER_TEXTURE = ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/border_classes/effs/effs_border.png");
 
-    private static final ResourceLocation SPELL_SLOT_TEXTURE = ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/hud/spell_slot.png");
+    private static final ResourceLocation SPELL_SLOT_BG = ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/hud/spell_slot_bg.png");
+    private static final ResourceLocation SPELL_SLOT_HIGHLIGHT = ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/hud/spell_slot_highlight.png");
     private static final ResourceLocation COOLDOWN_TEXTURE = ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/hud/cooldown.png");
 
     private static final int LEVELUP_TOTAL_FRAMES = 17;
@@ -73,6 +80,7 @@ public class HudOverlay implements IGuiOverlay {
 
         drawAnimatedClassIcon(guiGraphics);
         drawHudBars(guiGraphics);
+        drawSpellBar(guiGraphics, partialTick, screenWidth, screenHeight);
 
         renderLevelUpAnimation(guiGraphics, screenWidth, screenHeight);
     }
@@ -135,6 +143,75 @@ public class HudOverlay implements IGuiOverlay {
 
         if (levelUpState == LevelUpState.INITIAL_HOLD) {
             drawLevelTransition(guiGraphics, screenWidth, y + textureHeight - 5);
+        }
+    }
+
+    private void drawSpellBar(GuiGraphics guiGraphics, float partialTick, int screenWidth, int screenHeight) {
+        if (ClientData.knownSpells.isEmpty()) {
+            return;
+        }
+
+        int startX = 20;
+        int startY = 65;
+        int slotSize = 24;
+        int slotSpacing = 4;
+
+        double mouseX = Minecraft.getInstance().mouseHandler.xpos() * (double)screenWidth / Minecraft.getInstance().getWindow().getScreenWidth();
+        double mouseY = Minecraft.getInstance().mouseHandler.ypos() * (double)screenHeight / Minecraft.getInstance().getWindow().getScreenHeight();
+
+        ISpell spellToDescribe = null;
+
+        RenderSystem.enableBlend();
+
+        for (int i = 0; i < ClientData.knownSpells.size(); i++) {
+            ISpell spell = SpellRegistry.getSpell(ClientData.knownSpells.get(i));
+            if (spell == null) continue;
+
+            int currentY = startY + i * (slotSize + slotSpacing);
+
+            guiGraphics.blit(spell.getIcon(), startX + 3, currentY + 3, 0, 0, 18, 18, 18, 18);
+
+
+            guiGraphics.blit(SPELL_SLOT_BG, startX, currentY, 0, 0, slotSize, slotSize, slotSize, slotSize);
+
+            if (i == ClientData.currentSpellIndex) {
+                int highlightSize = 30;
+                int highlightX = startX - (highlightSize - slotSize) / 2;
+                int highlightY = currentY - (highlightSize - slotSize) / 2;
+
+                RenderSystem.setShaderColor(1f, 1f, 1f, 0.8f);
+                guiGraphics.blit(SPELL_SLOT_HIGHLIGHT, highlightX, highlightY, 0, 0, highlightSize, highlightSize, highlightSize, highlightSize);
+                RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+            }
+
+            Player player = Minecraft.getInstance().player;
+            if (player != null && player.getCooldowns().isOnCooldown(ModItems.GRIMOIRE_HOURGLASS.get())) {
+                Item cooldownItem = spell.getCooldownItem();
+                if (player.getCooldowns().isOnCooldown(cooldownItem)) {
+                    float cooldownPercent = player.getCooldowns().getCooldownPercent(cooldownItem, partialTick);
+                    int cooldownHeight = (int) (slotSize * cooldownPercent);
+                    if (cooldownHeight > 0) {
+                        RenderSystem.setShaderColor(0.1f, 0.1f, 0.1f, 0.7f);
+                        guiGraphics.blit(COOLDOWN_TEXTURE, startX, currentY + slotSize - cooldownHeight, 0, 0, slotSize, cooldownHeight, slotSize, slotSize);
+                        RenderSystem.setShaderColor(1f, 1f, 1f, 1f);
+                    }
+                }
+            }
+
+            if (mouseX >= startX && mouseX <= startX + slotSize &&
+                    mouseY >= currentY && mouseY <= currentY + slotSize) {
+                spellToDescribe = spell;
+            }
+        }
+        RenderSystem.disableBlend();
+
+        if (spellToDescribe != null) {
+            List<Component> tooltipLines = List.of(
+                    spellToDescribe.getDisplayName().copy().withStyle(ChatFormatting.AQUA),
+                    spellToDescribe.getDescription()
+            );
+
+            guiGraphics.renderComponentTooltip(Minecraft.getInstance().font, tooltipLines, (int)mouseX, (int)mouseY);
         }
     }
 

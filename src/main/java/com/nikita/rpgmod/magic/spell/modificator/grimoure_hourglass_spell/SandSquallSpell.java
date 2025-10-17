@@ -2,25 +2,29 @@ package com.nikita.rpgmod.magic.spell.modificator.grimoure_hourglass_spell;
 
 import com.nikita.rpgmod.RPGMod;
 import com.nikita.rpgmod.capibility.PlayerStatsProvider;
+import com.nikita.rpgmod.item.ModItems;
 import com.nikita.rpgmod.magic.PlayerMagicProvider;
 import com.nikita.rpgmod.magic.spell.ISpell;
-import com.nikita.rpgmod.util.ModDamageTypes;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.damagesource.DamageSource;
+import net.minecraft.world.damagesource.DamageType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.monster.Enemy;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Песчаный Шквал
@@ -42,7 +46,7 @@ public class SandSquallSpell implements ISpell {
 
     @Override
     public ResourceLocation getIcon() {
-        return ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/spells/sand_squall.png");
+        return ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/spells/grimoire_hourglass/sand_squall.png");
     }
 
     @Override
@@ -90,13 +94,19 @@ public class SandSquallSpell implements ISpell {
             for (LivingEntity target : nearbyEntities) {
                 Vec3 toTarget = target.position().subtract(playerPos).normalize();
                 if (lookVec.dot(toTarget) > 0.5) {
-                    DamageSource damageSource = new DamageSource(
-                            level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(ModDamageTypes.SAND_BLAST),
-                            player
-                    );
-                    target.hurt(damageSource, finalDamage);
+                    target.hurt(level.damageSources().magic(), finalDamage);
                 }
             }
         });
+    }
+
+    @Override
+    public Item getCooldownItem() {
+        return ModItems.CD_SAND_SQUALL.get();
+    }
+
+    @Override
+    public Component getDescription() {
+        return Component.translatable("spell.rpgmod.sand_squall.desc");
     }
 }

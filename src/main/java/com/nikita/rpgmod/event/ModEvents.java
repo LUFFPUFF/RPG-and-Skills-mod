@@ -27,6 +27,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.boss.enderdragon.EnderDragon;
 import net.minecraft.world.entity.boss.wither.WitherBoss;
@@ -226,14 +227,33 @@ public class ModEvents {
                 boolean isHoldingGrimoire = player.getMainHandItem().is(ModItems.GRIMOIRE_HOURGLASS.get())
                         || player.getOffhandItem().is(ModItems.GRIMOIRE_HOURGLASS.get());
 
+                List<ISpell> grimoireSpells = List.of(
+                        ModSpells.ERODING_SHOT,
+                        ModSpells.SAND_SQUALL,
+                        ModSpells.STASIS_FIELD,
+                        ModSpells.QUICKSAND_TRAP,
+                        ModSpells.DUNE_SHIFT,
+                        ModSpells.SANDSTORM_AEGIS
+                );
+
                 if (isHoldingGrimoire) {
-                    spells.learnSpell(ModSpells.ERODING_SHOT.getRegistryName());
-                    spells.learnSpell(ModSpells.SAND_SQUALL.getRegistryName());
+                    for (ISpell spell : grimoireSpells) {
+                        spells.learnSpell(spell.getRegistryName());
+                    }
                 } else {
-                    spells.forgetSpell(ModSpells.ERODING_SHOT.getRegistryName());
-                    spells.forgetSpell(ModSpells.SAND_SQUALL.getRegistryName());
+                    for (ISpell spell : grimoireSpells) {
+                        spells.forgetSpell(spell.getRegistryName());
+                    }
                 }
             });
+
+            if (player.hasEffect(MobEffects.DAMAGE_RESISTANCE) && Objects.requireNonNull(player.getEffect(MobEffects.DAMAGE_RESISTANCE)).getAmplifier() == 99) {
+                double radius = 3.0;
+                List<LivingEntity> targets = player.level().getEntitiesOfClass(LivingEntity.class, player.getBoundingBox().inflate(radius), e -> e instanceof Enemy && e.isAlive());
+                for (LivingEntity target : targets) {
+                    target.hurt(player.damageSources().magic(), 2.0f);
+                }
+            }
 
             if (player.tickCount % 20 == 0) {
                 player.getCapability(PlayerStatsProvider.PLAYER_STATS).ifPresent(stats -> {
@@ -255,10 +275,7 @@ public class ModEvents {
                     }
                 });
             }
-
-
         }
-
     }
 
     @SubscribeEvent
@@ -373,9 +390,6 @@ public class ModEvents {
                     player.getCapability(PlayerClassDataProvider.PLAYER_CLASS).ifPresent(classData -> {
                         player.getCapability(PlayerSpellsProvider.PLAYER_SPELLS).ifPresent(spells -> {
 
-                            ISpell currentSpell = spells.getCurrentSpell();
-                            ResourceLocation spellId = currentSpell != null ? currentSpell.getRegistryName() : null;
-
                             PacketHandler.sendToPlayer(new SyncDataS2CPacket(
                                     level.getLevel(), level.getExperience(), level.getExperienceNeededForNextLevel(), level.getAttributePoints(),
                                     magic.getCurrentMana(), magic.getMaxMana(),
@@ -383,7 +397,8 @@ public class ModEvents {
                                     player.getFoodData().getFoodLevel(),
                                     stats.getStrength(), stats.getDexterity(), stats.getIntelligence(), stats.getVitality(), stats.getInsight(),
                                     classData.getDisplayName(),
-                                    spellId
+                                    spells.getKnownSpells(),
+                                    spells.getCurrentSpellIndex()
                             ), player);
                         });
                     });

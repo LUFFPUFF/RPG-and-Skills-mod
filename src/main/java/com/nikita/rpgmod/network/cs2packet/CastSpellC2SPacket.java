@@ -30,17 +30,18 @@ public class CastSpellC2SPacket {
                 return;
             }
 
-            if (player.getCooldowns().isOnCooldown(heldItem)) {
-                return;
-            }
-
             player.getCapability(PlayerSpellsProvider.PLAYER_SPELLS).ifPresent(spellsData -> {
                 ISpell currentSpell = spellsData.getCurrentSpell();
                 if (currentSpell == null) return;
 
+                if (player.getCooldowns().isOnCooldown(currentSpell.getCooldownItem())) {
+                    player.sendSystemMessage(Component.literal("Заклинание еще не готово!"), true);
+                    return;
+                }
+
                 player.getCapability(PlayerMagicProvider.PLAYER_MAGIC).ifPresent(magic -> {
                     if (magic.consumeMana(currentSpell.getManaCost(player))) {
-                        player.getCooldowns().addCooldown(heldItem, currentSpell.getCooldownTicks(player));
+                        player.getCooldowns().addCooldown(currentSpell.getCooldownItem(), currentSpell.getCooldownTicks(player));
                         currentSpell.cast(player);
                     } else {
                         player.sendSystemMessage(Component.literal("Недостаточно маны!"), true);

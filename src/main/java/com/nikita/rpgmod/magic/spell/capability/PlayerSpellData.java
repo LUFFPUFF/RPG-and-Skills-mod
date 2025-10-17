@@ -29,6 +29,10 @@ public class PlayerSpellData {
         }
     }
 
+    public int getCurrentSpellIndex() {
+        return this.currentSpellIndex;
+    }
+
     public void forgetSpell(ResourceLocation spellId) {
         knownSpells.remove(spellId);
         if (currentSpellIndex >= knownSpells.size()) {

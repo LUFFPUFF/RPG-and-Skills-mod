@@ -3,6 +3,7 @@ package com.nikita.rpgmod.magic.spell.modificator.grimoure_hourglass_spell;
 import com.nikita.rpgmod.RPGMod;
 import com.nikita.rpgmod.capibility.PlayerStatsProvider;
 import com.nikita.rpgmod.entity.custom.spell.SandBlastProjectile;
+import com.nikita.rpgmod.item.ModItems;
 import com.nikita.rpgmod.magic.PlayerMagicProvider;
 import com.nikita.rpgmod.magic.spell.ISpell;
 import net.minecraft.network.chat.Component;
@@ -11,6 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 
 /**
  * Эродирующий Выстрел
@@ -32,7 +34,7 @@ public class ErodingShotSpell implements ISpell {
 
     @Override
     public ResourceLocation getIcon() {
-        return ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/spells/eroding_shot.png");
+        return ResourceLocation.fromNamespaceAndPath(RPGMod.MOD_ID, "textures/gui/spells/grimoire_hourglass/eroding_shot.png");
     }
 
     @Override
@@ -68,5 +70,15 @@ public class ErodingShotSpell implements ISpell {
             projectile.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, 1.5F, 1.0F);
             player.level().addFreshEntity(projectile);
         });
+    }
+
+    @Override
+    public Item getCooldownItem() {
+        return ModItems.CD_ERODING_SHOT.get();
+    }
+
+    @Override
+    public Component getDescription() {
+        return Component.translatable("spell.rpgmod.eroding_shot.desc");
     }
 }

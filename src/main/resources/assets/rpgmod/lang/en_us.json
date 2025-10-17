@@ -1,0 +1,24 @@
+{
+  "item.rpgmod.grimoire_hourglass": "Grimoire of the Hourglass",
+  "item.rpgmod.grimoire_hourglass.tooltip": "§7An ancient tome containing magic of sand and time.§r",
+
+  "spell.rpgmod.eroding_shot": "Eroding Shot",
+  "spell.rpgmod.eroding_shot.desc": "§7Fires a projectile that deals §bmagic damage§7 and §eslows§7 the target.§r",
+  "spell.rpgmod.sand_squall": "Sand Squall",
+  "spell.rpgmod.sand_squall.desc": "§7Creates a cone of sharp sand, hitting multiple targets in front of you.§r",
+  "spell.rpgmod.stasis_field": "Stasis Field",
+  "spell.rpgmod.stasis_field.desc": "§7Freezes time in an area around you, nearly stopping all enemies.§r",
+  "spell.rpgmod.quicksand_trap": "Quicksand Trap",
+  "spell.rpgmod.quicksand_trap.desc": "§7Creates a quicksand trap on the ground that immobilizes and weakens enemies.§r",
+  "spell.rpgmod.dune_shift": "Dune Shift",
+  "spell.rpgmod.dune_shift.desc": "§7A quick dash forward, allowing you to dodge attacks.§r",
+  "spell.rpgmod.sandstorm_aegis": "Sandstorm Aegis",
+  "spell.rpgmod.sandstorm_aegis.desc": "§7Ultimate: Surrounds you with a protective vortex that reduces damage and hurts nearby enemies.§r",
+
+  "key.category.rpgmod": "RPG Mod",
+  "key.rpgmod.open_character_screen": "Open Character Profile",
+  "key.rpgmod.use_insight_skill": "Use Insight Skill",
+  "key.rpgmod.cast_spell": "Cast Spell",
+  "key.rpgmod.next_spell": "Next Spell",
+  "key.rpgmod.previous_spell": "Previous Spell"
+}

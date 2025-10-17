@@ -3,6 +3,8 @@ package com.nikita.rpgmod.client;
 import net.minecraft.resources.ResourceLocation;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Статический класс-хранилище для всех данных, полученных от сервера.
@@ -26,7 +28,7 @@ public class ClientData {
     public static float visualMana;
     public static float maxMana = 100;
 
-    // Голод (добавлен из предыдущих шагов)
+    // Голод
     public static int currentHunger = 20;
     public static final int MAX_HUNGER = 20;
 
@@ -40,6 +42,9 @@ public class ClientData {
     // Класс игрока
     public static String playerClassName = "Без класса";
 
+    //спелы
     @Nullable
     public static ResourceLocation currentSpellId = null;
+    public static List<ResourceLocation> knownSpells = new ArrayList<>();
+    public static int currentSpellIndex = -1;
 }

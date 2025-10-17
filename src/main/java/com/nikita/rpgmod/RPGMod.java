@@ -34,6 +34,8 @@ public class RPGMod {
         ModEntities.register(modEventBus);
         ModSpells.register();
 
+//        ModDamageTypes.register(modEventBus);
+
         PacketHandler.register();
 
         LOGGER.info("[RPGMod] Initialized!");
